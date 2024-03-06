@@ -1,0 +1,92 @@
+-- 1. 영어영문학과(학과코드 002) 학생들의 학번과 이름, 입학 년도를 입학 년도가 빠른 순으로 표시하는 SQL 문장을 작성하시오.
+-- (단, 헤더는 "학번", "이름", "입학년도"가 표시되도록 한다.)
+SELECT STUDENT_NO AS "학번", STUDENT_NAME AS "이름", 
+    TO_CHAR(ENTRANCE_DATE, 'YYYY-MM-DD') AS "입학년도"
+FROM TB_STUDENT
+WHERE DEPARTMENT_NO = '002'
+ORDER BY ENTRANCE_DATE ASC;
+
+-- 2. 춘 기술대학교의 교수 중 이름이 세 글자가 아닌 교수가 한 명 있다고 한다.
+-- 그 교수의 이름과 주민번호를 화면에 출력하는 SQL 문장을 작성해 보자.
+-- (* 이때 올바르게 작성한 SQL 문장의 결과 값이 예상과 다르게 나올 수 있다. 원인이 무엇일지 생각해볼 것)
+SELECT PROFESSOR_NAME, PROFESSOR_SSN
+FROM TB_PROFESSOR
+WHERE LENGTH(PROFESSOR_NAME) != 3;
+
+-- 3. 춘 기술대학교의 남자 교수들의 이름과 나이를 출력. 단, 이때 나이가 적은 사람에서 많은 사람 순서로 출력.
+-- (단, 교수 중 2000년 이후 출생자는 없으며, 출력 헤더는 "교수이름", "나이"로 한다. 나이는 '만'으로 계산한다.)
+SELECT PROFESSOR_NAME 교수이름, EXTRACT(YEAR FROM SYSDATE) - (19 || SUBSTR(PROFESSOR_SSN, 1, 2)) 나이
+FROM TB_PROFESSOR
+WHERE SUBSTR(PROFESSOR_SSN, 8, 1) = 1
+ORDER BY 나이;
+ 
+-- 4. 교수들의 이름 중, 성을 제외한 이름만 출력.
+-- 출력 헤더는 "이름"이 찍히도록 한다.(성이 2자인 교수는 없다고 가정)
+SELECT SUBSTR(PROFESSOR_NAME, 2) AS "이름"
+FROM TB_PROFESSOR;
+
+-- 5. 춘 기술대학교의 재수생 입학자를 구하려고 한다. 이때, 19살에 입학하면 재수를 하지 않은 것으로 간주한다.
+
+SELECT STUDENT_NO, STUDENT_NAME
+FROM TB_STUDENT
+WHERE EXTRACT(YEAR FROM ENTRANCE_DATE) - EXTRACT(YEAR FROM TO_DATE(SUBSTR(STUDENT_SSN, 1, 6))) > 19;
+
+-- 6. 2020년 크리스마스는 무슨 요일?
+SELECT TO_CHAR(TO_DATE(20201225), 'DAY')
+FROM DUAL;
+
+-- 7. TO_DATE('99/10/11', 'YY/MM/DD'), TO_DATE('49/10/11', 'YY/MM/DD') 은 각각 몇 년 몇 월 몇 일을 의미할까?
+-- 또 TO_DATE('99/10/11', 'RR/MM/DD'), TO_DATE('49/10/11', 'RR/MM/DD') 은 각각 몇 년 몇 월 몇 일을 의미?
+SELECT TO_CHAR(TO_DATE('99/10/11', 'YY/MM/DD'),'YYYY'), -- 2099년 10월 11일
+    TO_CHAR(TO_DATE('49/10/11', 'YY/MM/DD'),'YYYY'), -- 2049년 10월 11일
+    TO_CHAR(TO_DATE('99/10/11', 'RR/MM/DD'),'YYYY'), -- 1999년 10월 11일
+    TO_CHAR(TO_DATE('49/10/11', 'RR/MM/DD'),'YYYY') -- 2049년 10월 11일
+FROM DUAL;
+
+-- 8.
+SELECT STUDENT_NO, STUDENT_NAME
+FROM TB_STUDENT
+WHERE ENTRANCE_DATE < '2000/01/01';
+
+-- 9.
+SELECT ROUND(AVG(POINT),1) AS "평점"
+FROM TB_GRADE
+WHERE STUDENT_NO = 'A517178';
+
+-- 10.
+SELECT DEPARTMENT_NO AS "학과번호", COUNT(*) AS "학생수(명)"
+FROM TB_STUDENT
+GROUP BY DEPARTMENT_NO
+ORDER BY 1;
+
+-- 11.
+SELECT COUNT(*) AS "학생수(명)"
+FROM TB_STUDENT
+WHERE COACH_PROFESSOR_NO IS NULL;
+
+--12.
+SELECT SUBSTR(TERM_NO, 1, 4) AS "년도", ROUND(AVG(POINT),1) AS "년도별 평점"
+FROM TB_GRADE
+WHERE STUDENT_NO = 'A112113'
+GROUP BY SUBSTR(TERM_NO, 1, 4)
+ORDER BY 1;
+
+--13.
+SELECT DEPARTMENT_NO AS "학과코드명", COUNT(DECODE(ABSENCE_YN, 'Y', 1)) AS "휴학생 수"
+FROM TB_STUDENT
+GROUP BY DEPARTMENT_NO
+ORDER BY 1;
+
+--14.
+SELECT STUDENT_NAME AS "동일이름", COUNT(*)
+FROM TB_STUDENT
+GROUP BY STUDENT_NAME
+HAVING COUNT(*) > 1
+ORDER BY 1;
+
+--15.
+SELECT SUBSTR(TERM_NO, 1, 4) AS "년도", SUBSTR(TERM_NO, 5, 2) AS "학기", ROUND(AVG(POINT),1) AS "년도별 평점"
+FROM TB_GRADE
+WHERE STUDENT_NO = 'A112113'
+GROUP BY ROLLUP(SUBSTR(TERM_NO, 1, 4), SUBSTR(TERM_NO, 5, 2))
+ORDER BY 1;
